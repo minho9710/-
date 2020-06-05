@@ -85,4 +85,5 @@ int main()
         minmult(n, m, seq);
         order(seq, 1, n);
         return 0;
+        
 }
