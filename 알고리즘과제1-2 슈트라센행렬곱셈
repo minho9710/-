@@ -1,0 +1,226 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#define SIZE 127
+
+void standard(int n, int **A, int **B, int ***C, int *as, int *mul)     //기본적인 행렬곱셈
+{
+        int i, j, k;
+        for (i = 0; i < n; i++)
+                for (j = 0; j < n; j++)
+                        for (k = 0; k < n; k++)
+                        {
+                                (*C)[i][j] += A[i][k] * B[k][j];
+                                *as += 1;
+                                *mul += 1;
+                        }
+}
+void add(int n, int **A, int **B, int ***C, int *as)    //행렬덧셈
+{
+        int i, j;
+        for (i = 0; i < n; i++)
+                for (j = 0; j < n; j++)
+                {
+                        (*C)[i][j] = A[i][j] + B[i][j];
+                        *as += 1;
+                }
+}
+void sub(int n, int **A, int **B, int ***C, int *as)    //행렬뺄셈
+{
+        int i, j;
+        for (i = 0; i < n; i++)
+                for (j = 0; j < n; j++)
+                {
+                        (*C)[i][j] = A[i][j] - B[i][j];
+                        *as += 1;
+                }
+}
+
+void strassen(int n, int **A, int **B, int ***C, int *as, int *mul)
+{
+        int i;
+        int **A11;      //행렬분할 이것도 다 2차원배열위해 동적메모리할당
+        int **A12;
+        int **A21;
+        int **A22;
+        int **B11;
+        int **B12;
+        int **B21;
+        int **B22;
+        int **C11;
+        int **C12;
+        int **C21;
+        int **C22;
+        int **m1;       //계산에 쓰일 행렬들
+        int **m2;
+        int **m3;
+        int **m4;
+        int **m5;
+        int **m6;
+        int **m7;
+        int **temp1; //임시대피할행렬
+        int **temp2;
+        A11 = (int**)malloc(n / 2 * sizeof(int*));
+        A12= (int**)malloc(n / 2 * sizeof(int*));
+        A21= (int**)malloc(n / 2 * sizeof(int*));
+        A22= (int**)malloc(n / 2 * sizeof(int*));
+        B11= (int**)malloc(n / 2 * sizeof(int*));
+        B12= (int**)malloc(n / 2 * sizeof(int*));
+        B21= (int**)malloc(n / 2 * sizeof(int*));
+        B22= (int**)malloc(n / 2 * sizeof(int*));
+        C11= (int**)malloc(n / 2 * sizeof(int*));
+        C12= (int**)malloc(n / 2 * sizeof(int*));
+        C21= (int**)malloc(n / 2 * sizeof(int*));
+        C22= (int**)malloc(n / 2 * sizeof(int*));
+        m1= (int**)malloc(n / 2 * sizeof(int*));
+        m2= (int**)malloc(n / 2 * sizeof(int*));
+        m3= (int**)malloc(n / 2 * sizeof(int*));
+        m4= (int**)malloc(n / 2 * sizeof(int*));
+        m5= (int**)malloc(n / 2 * sizeof(int*));
+        m6= (int**)malloc(n / 2 * sizeof(int*));
+        m7= (int**)malloc(n / 2 * sizeof(int*));
+        temp1= (int**)malloc(n / 2 * sizeof(int*));
+        temp2= (int**)malloc(n / 2 * sizeof(int*));
+
+        for (i = 0; i < n / 2; i++)
+        {
+                A11[i] = (int*)malloc(n / 2 * sizeof(int));
+                A12[i] = (int*)malloc(n / 2 * sizeof(int));
+                A21[i] = (int*)malloc(n / 2 * sizeof(int));
+                A22[i] = (int*)malloc(n / 2 * sizeof(int));
+                B11[i] = (int*)malloc(n / 2 * sizeof(int));
+                B12[i] = (int*)malloc(n / 2 * sizeof(int));
+                B21[i] = (int*)malloc(n / 2 * sizeof(int));
+                B22[i] = (int*)malloc(n / 2 * sizeof(int));
+                C11[i] = (int*)malloc(n / 2 * sizeof(int));
+                C12[i] = (int*)malloc(n / 2 * sizeof(int));
+                C21[i] = (int*)malloc(n / 2 * sizeof(int));
+                C22[i] = (int*)malloc(n / 2 * sizeof(int));
+                m1[i] = (int*)malloc(n / 2 * sizeof(int));
+                m2[i] = (int*)malloc(n / 2 * sizeof(int));
+                m3[i] = (int*)malloc(n / 2 * sizeof(int));
+                m4[i] = (int*)malloc(n / 2 * sizeof(int));
+                m5[i] = (int*)malloc(n / 2 * sizeof(int));
+                m6[i] = (int*)malloc(n / 2 * sizeof(int));
+                m7[i] = (int*)malloc(n / 2 * sizeof(int));
+                temp1[i] = (int*)malloc(n / 2 * sizeof(int));
+                temp2[i] = (int*)malloc(n / 2 * sizeof(int));
+        }
+        if (n == 1)
+        {
+                standard(1, A, B, C, as, mul);  //임계치를 1로 잡고 이 때는 일반계산으로이됨
+                *mul += 1;
+        }
+
+        else //실행시간만을 측정하는거므로 배열복사과정생략
+        {
+                add(n / 2, A11, A22, &temp1, as);
+                add(n / 2, B11, B22, &temp2, as);
+                strassen(n / 2, temp1, temp2, &m1, as, mul);    //m1
+
+                add(n / 2, A21, A22, &temp1, as);
+                strassen(n / 2, temp1, B11, &m2, as, mul);      //m2
+
+                sub(n / 2, B12, B22, &temp2, as);
+                strassen(n / 2, A11, temp2, &m3, as, mul);      //m3
+
+                sub(n / 2, B21, B11, &temp2, as);
+                strassen(n / 2, A22, temp2, &m4, as, mul);      //m4
+
+                add(n / 2, A11, A12, &temp1, as);
+                strassen(n / 2, temp1, B22, &m5, as, mul);      //m5
+
+                sub(n / 2, A21, A11, &temp1, as);
+                add(n / 2, B11, B12, &temp2, as);
+                strassen(n / 2, temp1, temp2, &m6, as, mul);    //m6
+
+                sub(n / 2, A12, A22, &temp1, as);
+                add(n / 2, B21, B22, &temp2, as);
+                strassen(n / 2, temp1, temp2, &m7, as, mul);    //m7
+
+                add(n / 2, m1, m4, &temp1, as);                         //C11구하기
+                sub(n / 2, m7, m5, &temp2, as);
+                add(n / 2, temp1, temp2, &C11, as);
+
+                add(n / 2, m3, m5, &C12, as);                                   //C12구하기
+
+                add(n / 2, m2, m4, &C21, as);                                   //C21구하기
+
+                add(n / 2, m1, m3, &temp1, as);                         //C22구하기
+                sub(n / 2, m6, m2, &temp2, as);
+                add(n / 2, temp1, temp2, &C22, as);
+
+                for (i = 0; i < n / 2; i++)                                                     //할당했던 동적배열 다 반환
+                {
+                        free(A11[i]); free(A12[i]); free(A21[i]); free(A22[i]);
+                        free(B11[i]); free(B12[i]); free(B21[i]); free(B22[i]);
+                        free(C11[i]); free(C12[i]); free(C21[i]); free(C22[i]);
+                        free(temp1[i]); free(temp2[i]);
+                        free(m1[i]); free(m2[i]); free(m3[i]); free(m4[i]); free(m5[i]); free(m6[i]); free(m7[i]);
+                }
+                free(A11); free(A12); free(A21); free(A22);
+                free(B11); free(B12); free(B21); free(B22);
+                free(C11); free(C12); free(C21); free(C22);
+                free(temp1); free(temp2);
+                free(m1); free(m2); free(m3); free(m4); free(m5); free(m6); free(m7);
+        }       //다시 C로 배열 합치는 과정도 마찬가지로 생략
+
+}
+
+int main()
+{
+        FILE *fp;
+        int **A, **B, **C;
+        int k = -3;
+        int stdas, stdmul, stras, strmul;
+        clock_t stdst, stden, strst, stren;
+        float stdtime, strtime;
+        int i;
+        stdas = 0;
+        stdmul = 0;
+        stras = 0;
+        strmul = 0;
+
+        fp = fopen("output2.txt", "w");
+
+
+        while (k<=3)
+        {
+                A = (int **)malloc((2 ^ (SIZE + k)) * sizeof(int *));   //2차원배열 동적할당
+                B = (int **)malloc((2 ^ (SIZE + k)) * sizeof(int *));
+                C = (int **)malloc((2 ^ (SIZE + k)) * sizeof(int *));
+                for (i = 0; i < (2 ^ (SIZE + k)); i++)
+                {
+                        A[i] = (int *)malloc((2 ^ (SIZE + k)) * sizeof(int));
+                        B[i] = (int *)malloc((2 ^ (SIZE + k)) * sizeof(int));
+                        C[i] = (int *)malloc((2 ^ (SIZE + k)) * sizeof(int));
+                }       //ABC에 값넣는 과정은 생략
+
+
+
+                stdst = clock();        //두가지 방법에 물리적시간측정
+                standard(2 ^ (SIZE + k), A, B, &C, &stdas, &stdmul);
+                stden = clock();
+                strst = clock();
+                strassen(2 ^ (SIZE + k), A, B, &C, &stras, &strmul);
+                stren = clock();
+                stdtime = (float)(stden - stdst)/CLOCKS_PER_SEC;
+                strtime = (float)(stren - strst)/CLOCKS_PER_SEC;
+                fprintf(fp,"===================================\n");    //결과값출력
+                fprintf(fp,"2^(k%d)       Standard     Strassen\n", k);
+                fprintf(fp,"-----------------------------------\n");
+                fprintf(fp,"mul           %d           %d      \n", stdmul, strmul);
+                fprintf(fp,"add/sub       %d           %d      \n", stdas, stras);
+                fprintf(fp,"time          %f           %f      \n", stdtime, strtime);
+                fprintf(fp,"===================================\n");
+
+                for (i = 0; i < (2 ^ (SIZE + k)); i++)//  동적할당풀어주고 k를 1올려줌
+                {
+                        free(A[i]); free(B[i]); free(C[i]);
+                }
+                free(A); free(B); free(C);
+                k++;
+        }
+        fclose(fp);
+        return 0;
+}
