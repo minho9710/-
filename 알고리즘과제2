@@ -1,0 +1,88 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int minimum(int **M, int i, int j, int *k, int *mat)
+{
+        int mink, minnum, temp;
+        for (*k = i; *k < j;*k=*k+1)
+        {
+                temp = M[i][*k] + M[*k + 1][j] + mat[i - 1] * mat[*k] * mat[j];//먼저 계산
+                        if (*k == i)//첫값이면 그대로넣기
+                        {
+                                minnum = temp;
+                                mink = *k;
+                        }
+                        else if (minnum > temp)//최저값과 계산값비교후 교체
+                        {
+                                minnum = temp;
+                                mink = *k;
+                        }
+        }
+        *k = mink;//제일 작았던 k값을 돌려줌
+        return minnum; //최소결과값을 돌려줌
+}
+
+void order(int **P, int i, int j)
+{
+        int k;
+        if (i == j)
+                printf("A%d", i);//1개만 원소있으면 그냥출력
+        else
+        {
+                k = P[i][j];// i부터 j까지 최단이되는 분기점을 받아옴
+                printf("(");//괄호로감쌈
+                order(P,i, k);//분기점사이를 나눠서 재귀출력
+                order(P,k + 1, j);
+                printf(")");
+        }
+
+}
+
+int minmult(int num, int *mat, int **P)
+{
+        int **M;//2차원배열위한 포인터선언
+        int i, j, k, diagonal;//매개변수
+
+        M = (int**)malloc(num * sizeof(int*));
+        for (i = 0; i <= num; i++)
+                M[i] = (int *)malloc(num * sizeof(int));//2차원배열 크기할당
+
+        for (i = 0; i <= num; i++)
+                M[i][i] = 0;
+        for (diagonal = 1; diagonal <= num - 1; diagonal++)// 12 23 34다음사이클 13 24 이리되도록
+                for (i = 1; i <= num - diagonal; i++)
+                {
+                        j = i + diagonal;
+                        M[i][j] = minimum(M, i, j, &k, mat);//minimum호출
+                        P[i][j] = k;//최소가 되는 분기점값 저장 예(M[1][3]일때 a1((a2a3)a4)라면 2에서 분기점이됨)
+                }
+        printf("M[1][%d] 까지의 최솟값 %d\n", num, M[1][num]);
+        return M[1][num]; //최솟값 전달
+}
+
+int main()
+
+{
+        int n;//행렬길이 적을 포인터
+        int *m;//행렬할당할 포인터
+        int **seq;//순서를 저장할 포인터
+        int i;//매개변수
+        int temp;//입력받을거 임시저장하는위치
+
+        printf("행렬개수입력 = ");
+        scanf("%d", &n); //행렬 개수 입력을 받음
+        m = (int *)malloc((n + 1) * sizeof(int));//행렬 할당
+        seq = (int**)malloc(n * sizeof(int*));
+        for (i = 0; i <= n; i++)
+                seq[i] = (int *)malloc(n * sizeof(int));
+        printf("행렬의 크기입력");
+        for (i = 0; i <= n; i++)//n+1의 행렬 크기입력
+        {
+                scanf(" %d", &temp);
+                m[i] = temp;
+        }
+
+        minmult(n, m, seq);
+        order(seq, 1, n);
+        return 0;
+}
